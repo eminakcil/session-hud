@@ -1,0 +1,20 @@
+{
+  "name": "session-hud",
+  "version": "0.1.1",
+  "description": "A Claude Code mod that brings a CLI-style status line to the desktop app: context, prompt cache hit and time left, response speed, 5-hour and weekly limits, and git. Draws only; sends no model requests. Requires Claude Code 2.1.322+.",
+  "author": { "name": "Emin Akcil", "url": "https://github.com/eminakcil" },
+  "homepage": "https://github.com/eminakcil/session-hud",
+  "repository": "https://github.com/eminakcil/session-hud",
+  "license": "MIT",
+  "keywords": ["claude-code", "claude-mods", "statusline", "desktop", "prompt-cache", "usage-limits", "git"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "ttl": {
+      "type": "string",
+      "title": "Cache TTL",
+      "description": "Prompt cache lifetime of the main conversation",
+      "default": "1h",
+      "options": ["1h", "5m"]
+    }
+  }
+}
