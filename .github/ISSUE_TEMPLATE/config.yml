@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Claude Code plugin docs
+    url: https://docs.claude.com/en/docs/claude-code/plugins
+    about: How plugins and mods work in Claude Code
