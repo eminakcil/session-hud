@@ -8,9 +8,9 @@ session-hud is a Claude Code mod that draws a row above the prompt with the figu
 
 **[Install](#-install)** · [What it shows](#-what-it-shows) · [Options](#%EF%B8%8F-options) · [What it can reach](#-what-it-can-reach) · [Limits](#-limits) · [Develop](#%EF%B8%8F-develop)
 
-![Real capture of the session-hud band above the prompt in the desktop app](assets/band.png)
+![Real captures of the session-hud band above the prompt in the desktop app, in the dark and the light theme](assets/band-themes.png)
 
-Captured in the desktop app's Code tab on Claude Code 2.1.322, dark theme.
+Captured in the desktop app's Code tab on Claude Code 2.1.322, dark theme above and light theme below.
 
 ## 🚀 Install
 
@@ -111,6 +111,6 @@ claude plugin test .
 | `hooks/icons.ts` | [Lucide](https://lucide.dev) icon paths (ISC license), bars, dark and light palettes |
 | `tests/register.test.tsx` | Tests for `claude plugin test` |
 | `types/index.d.ts` | The mod's `$.state` contract |
-| `assets/band.png` | The capture above |
+| `assets/band-themes.png` | The captures above |
 
 Built by [Emin Akcil](https://github.com/eminakcil). [MIT](LICENSE) licensed.
