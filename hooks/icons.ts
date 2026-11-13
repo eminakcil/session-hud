@@ -1,6 +1,6 @@
 // Icons from Lucide (https://lucide.dev, ISC license), 24px grid, 2px stroke.
 // The desktop draws Svg as an image, so currentColor does not follow the
-// theme: colors are fixed for the dark theme.
+// theme: each scheme has its own fixed palette, picked from the theme setting.
 
 const PATHS = {
   context: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
@@ -44,8 +44,9 @@ export const GLYPHS: Record<IconName, string> = {
   worktree: '⑂',
 }
 
-/** Dark theme only. */
-export const HEX = {
+export type Scheme = 'dark' | 'light'
+
+const DARK = {
   icon: '#9c9a92',
   success: '#4ec46a',
   warning: '#e0a83a',
@@ -57,17 +58,43 @@ export const HEX = {
   card: '#30302e',
   hover: '#3a3a37',
 } as const
-export type Hex = keyof typeof HEX
+export type Hex = keyof typeof DARK
+
+/** Darker tones, so strokes and fills keep their contrast on a light page. */
+const LIGHT: Record<Hex, string> = {
+  icon: '#6b6a65',
+  success: '#1f8a3c',
+  warning: '#b07612',
+  error: '#d0402f',
+  idle: '#a3a29c',
+  accent: '#2f6fd6',
+  time: '#8a7f5c',
+  track: '#000000',
+  card: '#f0eee6',
+  hover: '#e6e3d9',
+}
+
+export const PALETTES: Record<Scheme, Record<Hex, string>> = { dark: DARK, light: LIGHT }
+
+/** The dark palette, kept for callers that name no scheme. */
+export const HEX = DARK
+
+/**
+ * The scheme a `theme` setting value stands for: `light`, `light-daltonized`,
+ * `light-ansi` and the like are light; anything else, `auto` included, dark.
+ */
+export const schemeOf = (theme: unknown): Scheme =>
+  typeof theme === 'string' && theme.startsWith('light') ? 'light' : 'dark'
 
 const esc = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 /** A `<title>`: the native tooltip an interactive Svg shows on hover. */
 const titled = (tip?: string) => (tip ? `<title>${esc(tip)}</title>` : '')
 
-export function svg(name: IconName, color: Hex = 'icon', tip?: string): string {
+export function svg(name: IconName, color: Hex = 'icon', tip?: string, scheme: Scheme = 'dark'): string {
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="' +
-    HEX[color] +
+    PALETTES[scheme][color] +
     '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
     titled(tip) +
     // A clear square under the strokes, so the whole icon takes the pointer.
@@ -80,7 +107,8 @@ export function svg(name: IconName, color: Hex = 'icon', tip?: string): string {
 const clamp = (n: number) => Math.max(0, Math.min(1, n))
 
 /** A thin progress bar. */
-export function bar(ratio: number, tone: Hex, w = 400, h = 6): string {
+export function bar(ratio: number, tone: Hex, w = 400, h = 6, scheme: Scheme = 'dark'): string {
+  const HEX = PALETTES[scheme]
   const f = clamp(ratio) * w
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none">` +
@@ -94,7 +122,16 @@ export function bar(ratio: number, tone: Hex, w = 400, h = 6): string {
  * The status line's two-row limit bar: quota used on top, the share of the
  * window gone by underneath.
  */
-export function paceBar(used: number, elapsed: number | null, tone: Hex, w = 44, h = 8, tip?: string): string {
+export function paceBar(
+  used: number,
+  elapsed: number | null,
+  tone: Hex,
+  w = 44,
+  h = 8,
+  tip?: string,
+  scheme: Scheme = 'dark',
+): string {
+  const HEX = PALETTES[scheme]
   const row = h / 2
   const u = clamp(used) * w
   const e = elapsed === null ? 0 : clamp(elapsed) * w

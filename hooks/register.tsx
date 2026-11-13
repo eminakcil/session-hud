@@ -23,8 +23,8 @@ import {
 } from './calc'
 import type { Tone } from './calc'
 import { readGit } from './git'
-import { GLYPHS, HEX, LABELS, bar, paceBar, svg, textBar } from './icons'
-import type { Hex, IconName } from './icons'
+import { GLYPHS, LABELS, bar, paceBar, schemeOf, svg, textBar } from './icons'
+import type { Hex, IconName, Scheme } from './icons'
 
 const ZERO: Totals = { input: 0, output: 0, read: 0, write: 0, steps: 0 }
 const last = atom({ plugin: 'session-hud', key: 'last' } as const, null as LastTurn | null, { shape: 'last-2' })
@@ -34,6 +34,14 @@ const speed = atom({ plugin: 'session-hud', key: 'speed' } as const, null as Spe
 const usage = atom({ plugin: 'session-hud', key: 'usage' } as const, null as Usage | null, { shape: 'usage-1' })
 const git = atom({ plugin: 'session-hud', key: 'git' } as const, null as Git | null, { shape: 'git-1' })
 const now = atom({ plugin: 'session-hud', key: 'now' } as const, 0)
+const scheme = atom({ plugin: 'session-hud', key: 'scheme' } as const, 'dark' as Scheme)
+
+/** Reads the `theme` setting, so the Svg colors follow a light theme. */
+async function refreshScheme($: EngineInterface): Promise<void> {
+  const row = (await $.config.list()).find(r => r.key === 'theme')
+  const next = schemeOf(row?.value)
+  await update($, scheme, () => next)
+}
 
 const PANE = 'session-hud'
 /** A response that streamed for less than this gives no speed. */
@@ -201,6 +209,13 @@ export const register: Register = (on, options) => {
     await refreshUsage($, true)
     refreshGit($).catch(() => {})
     tick($)
+    refreshScheme($).catch(() => {})
+    return result
+  })
+
+  on('config.set', { key: 'theme' }, async ($, e, next) => {
+    const result = await next(e)
+    refreshScheme($).catch(() => {})
     return result
   })
 
@@ -274,6 +289,7 @@ export const register: Register = (on, options) => {
     const sp = await read($, speed)
     const g = await read($, git)
     const t = await read($, now)
+    const sc = await read($, scheme)
 
     const els = $.ui.resolve(e)
     const { Box, Text, Button } = els
@@ -283,7 +299,7 @@ export const register: Register = (on, options) => {
     // hover as the system's own popup: nothing in the band moves or grows.
     const icon = (name: IconName, tip?: string) =>
       Svg ? (
-        <Svg source={svg(name, 'icon', tip)} alt={LABELS[name]} width={14} height={14} isInteractive={tip ? true : undefined} />
+        <Svg source={svg(name, 'icon', tip, sc)} alt={LABELS[name]} width={14} height={14} isInteractive={tip ? true : undefined} />
       ) : (
         <Text dimColor>{GLYPHS[name]}</Text>
       )
@@ -405,7 +421,7 @@ export const register: Register = (on, options) => {
             {line([dim(LIMIT_NAMES[lim.kind] ?? lim.kind)])}
             {Svg ? (
               <Svg
-                source={paceBar(lim.percentUsed / 100, p?.elapsed ?? null, toHex(tone), 44, 8, tip)}
+                source={paceBar(lim.percentUsed / 100, p?.elapsed ?? null, toHex(tone), 44, 8, tip, sc)}
                 isInteractive
                 alt={`${LIMIT_TITLES[lim.kind] ?? lim.kind}: ${Math.round(lim.percentUsed)}% used`}
                 width={44}
@@ -484,6 +500,7 @@ export const register: Register = (on, options) => {
     const els = $.ui.resolve(e)
     const { Box, Text, Button } = els
     const Svg = e.surface !== 'terminal' && 'Svg' in els ? els.Svg : undefined
+    const sc = await read($, scheme)
 
     const u = await read($, usage)
     const l = await read($, last)
@@ -516,7 +533,7 @@ export const register: Register = (on, options) => {
           </Text>
         </Box>
         {Svg ? (
-          <Svg source={bar(ratio, tone)} alt={`${label}: ${Math.round(ratio * 100)}%`} height={6} />
+          <Svg source={bar(ratio, tone, 400, 6, sc)} alt={`${label}: ${Math.round(ratio * 100)}%`} height={6} />
         ) : (
           <Text dimColor={tone === 'idle'}>{textBar(ratio, 20)}</Text>
         )}
