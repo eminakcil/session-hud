@@ -722,7 +722,7 @@ export const register: Register = (on, options) => {
             </Text>
           </Box>
           {Svg ? (
-            <Svg source={paceBar(ratio, p?.elapsed ?? null, tone, 400, 12)} alt={`${Math.round(lim.percentUsed)}% used`} height={12} />
+            <Svg source={paceBar(ratio, p?.elapsed ?? null, tone, 400, 12, undefined, sc)} alt={`${Math.round(lim.percentUsed)}% used`} height={12} />
           ) : (
             <Text>{textBar(ratio, 20)}</Text>
           )}

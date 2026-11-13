@@ -67,12 +67,13 @@ The prompt cache lifetime the countdown runs against. `1h` (the default) matches
 
 Validated on Claude Code 2.1.322:
 
-    ❯ ./register.tsx hooks: session.start, command.run{command=hud}, session.measure, tool.call, turn.step, turn.complete, ui.render{component=AbovePrompt}, ui.render{component=Pane, requestId=session-hud}
-    ❯ ./register.tsx calls: $.clock.every (via tick), $.clock.now, $.command.register, $.process.run (via readGit), $.session.id, $.session.usage (via refreshUsage), $.state.get, $.state.set, $.ui.close, $.ui.copy, $.ui.open (via togglePane), $.ui.panes (via togglePane), $.ui.resolve, $.ui.toast
+    ❯ ./register.tsx hooks: session.start, config.set{key=theme}, command.run{command=hud}, session.measure, tool.call, turn.step, turn.complete, ui.render{component=AbovePrompt}, ui.render{component=Pane, requestId=session-hud}
+    ❯ ./register.tsx calls: $.clock.every (via tick), $.clock.now, $.command.register, $.config.list (via refreshScheme), $.process.run (via readGit), $.session.id, $.session.usage (via refreshUsage), $.state.get, $.state.set, $.ui.close, $.ui.copy, $.ui.open (via togglePane), $.ui.panes (via togglePane), $.ui.resolve, $.ui.toast
 
 - `turn.step` reads each response's token counts and timing. It never changes a request or reads prompt text.
 - `tool.call` only notes that a Bash, PowerShell, Edit or Write call finished, to read git again. It passes every call on untouched.
 - `$.process.run` runs two read-only git commands in the session's folder: `git status --porcelain=v2 --branch` and `git rev-parse`. It never fetches, commits or writes.
+- `config.set` and `$.config.list` only read the `theme` setting, to pick the dark or light palette. They never change a setting.
 - `$.ui.copy` runs only when you press Copy in the pane.
 
 ## 🚧 Limits

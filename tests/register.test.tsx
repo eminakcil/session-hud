@@ -2,6 +2,8 @@ import { expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
+import { PALETTES } from '../hooks/icons'
+
 const BAND = {
   plugin: 'session-hud',
   component: 'AbovePrompt',
@@ -237,6 +239,23 @@ test('the pane shows the session id and copies it', async ($, on) => {
   await ui.unmount()
   expect(copied).toEqual(['S1'])
   expect(toasts).toEqual(['Session id copied.'])
+})
+
+test('a light theme draws the band and the pane in the light palette', async ($, on) => {
+  const { clock } = engine(on)
+  on('config.list', () => ({ value: [{ key: 'theme', value: 'light' }] }) as never)
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  await clock.advance(1000)
+  for (const mount of [BAND, PANE]) {
+    const ui = await $.ui.mount({ ...mount, surface: 'desktop' })
+    const svgs = await ui.findAll({ type: 'Svg' })
+    await ui.unmount()
+    const sources = svgs.map(x => String(x.props.source))
+    expect(sources.length).toBeGreaterThan(0)
+    // The dark track is white, the light one black: no Svg may keep the dark one.
+    expect(sources.filter(x => x.includes(PALETTES.dark.track))).toEqual([])
+    expect(sources.filter(x => x.includes(PALETTES.dark.icon))).toEqual([])
+  }
 })
 
 test('hover details carry context breakdown, cache and speed averages', async ($, on) => {
