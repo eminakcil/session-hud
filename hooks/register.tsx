@@ -475,20 +475,25 @@ export const register: Register = (on, options) => {
     ) : null
 
     return (
-      <Box flexDirection="column">
-        {gitRow ? (
-          <Box flexDirection="row" alignItems="center" paddingX="xs">
-            {gitRow}
-          </Box>
-        ) : null}
-        <Box flexDirection="row" alignItems="center" gap="sm">
-          <Box flexDirection="row" alignItems="center" gap="sm" flexWrap="wrap" flexGrow={1}>
+      // Both lines start at the left; the menu button sits at the right,
+      // centered on the band's whole height.
+      <Box flexDirection="row" alignItems="center" gap="sm">
+        <Box flexDirection="column" flexGrow={1}>
+          {gitRow ? (
+            <Box flexDirection="row" alignItems="center" paddingX="xs">
+              {gitRow}
+            </Box>
+          ) : null}
+          <Box flexDirection="row" alignItems="center" gap="sm" flexWrap="wrap">
             {items.map(it => (
               <Box key={`item-${it.id}`} flexDirection="row" alignItems="center" paddingX="xs">
                 {it.body(tipText(it.detail))}
               </Box>
             ))}
           </Box>
+        </Box>
+        {/* The desktop pins a bare Button to the row's top: a Box of its own centers it. */}
+        <Box flexDirection="column" justifyContent="center" alignSelf="center">
           <Button key="pane" label="☰" plain dimColor onPress={() => togglePane($)} />
         </Box>
       </Box>
