@@ -66,6 +66,8 @@ declare module 'claude-code' {
       now: number
       /** The color scheme the Svg icons and bars are drawn for. */
       scheme: 'dark' | 'light'
+      /** Whether the band above the prompt is drawn; `/hud band` flips it. */
+      bandShown: boolean
     }
   }
 }

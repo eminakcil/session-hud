@@ -49,9 +49,14 @@ const GIT_STATUS = [
 type Counts = { input: number; read: number; write: number; output?: number }
 
 // Stands for the engine beneath the mod.
-function engine(on: On) {
+function engine(on: On, stored: Record<string, unknown> = {}) {
   const clock = mock.clock(on, { now: NOW })
-  mock.store(on)
+  // The store in memory, kept here so a test reads what the mod wrote.
+  on('store.get', (_, e) => ({ value: stored[e.key] }))
+  on('store.set', (_, e) => {
+    stored[e.key] = e.value
+    return { value: undefined }
+  })
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('session.id', () => ({ value: 'S1' }))
   on('command.register', (_, e) => ({ value: { command: e.name } }))
@@ -256,6 +261,39 @@ test('a light theme draws the band and the pane in the light palette', async ($,
     expect(sources.filter(x => x.includes(PALETTES.dark.track))).toEqual([])
     expect(sources.filter(x => x.includes(PALETTES.dark.icon))).toEqual([])
   }
+})
+
+test('/hud band hides the band, stores the choice, and shows it again', async ($, on) => {
+  const stored: Record<string, unknown> = {}
+  engine(on, stored)
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(await text($, BAND)).toContain('4%')
+
+  const hidden = await $.command.run({ command: 'hud', args: 'band' })
+  expect(hidden.text).toContain('Band hidden')
+  expect(await text($, BAND)).toBe('')
+  expect(stored.bandShown).toBe(false)
+
+  const shown = await $.command.run({ command: 'hud', args: 'band' })
+  expect(shown.text).toBe('Band shown.')
+  expect(await text($, BAND)).toContain('4%')
+  expect(stored.bandShown).toBe(true)
+})
+
+test('a session starts with the band hidden when an earlier one turned it off', async ($, on) => {
+  engine(on, { bandShown: false })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(await text($, BAND)).toBe('')
+  // The pane is not the band's to hide.
+  expect(await text($, PANE)).toContain('Context')
+})
+
+test('/hud alone still opens the pane, and an unknown word changes nothing', async ($, on) => {
+  engine(on)
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect((await $.command.run({ command: 'hud', args: '' })).text).toBe('Session pane opened.')
+  expect((await $.command.run({ command: 'hud', args: 'nope' })).text).toContain('Usage')
+  expect(await text($, BAND)).toContain('4%')
 })
 
 test('hover details carry context breakdown, cache and speed averages', async ($, on) => {

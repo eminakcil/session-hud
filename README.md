@@ -4,7 +4,7 @@
 
 **Your CLI status line, in the Claude Code desktop app.**
 
-session-hud is a Claude Code mod that draws a row above the prompt with the figures a terminal status line gives you: context fill, prompt cache hit and time left, response speed, the 5-hour and weekly limits with their pace, and git. A side pane holds the rest. It only draws: it sends no model requests and writes no files.
+session-hud is a Claude Code mod that draws a row above the prompt with the figures a terminal status line gives you: context fill, prompt cache hit and time left, response speed, the 5-hour and weekly limits with their pace, and git. A side pane holds the rest. It only draws: it sends no model requests and writes nothing but its own one-key preference store.
 
 **[Install](#-install)** · [What it shows](#-what-it-shows) · [Options](#%EF%B8%8F-options) · [What it can reach](#-what-it-can-reach) · [Limits](#-limits) · [Develop](#%EF%B8%8F-develop)
 
@@ -41,6 +41,8 @@ Restart Claude Code or run `/reload-plugins` in an open session.
 
 💡 Hover an icon or a limit bar for its details in a tooltip: the context breakdown, cache read and write tokens, session averages, time to reset.
 
+Hide or show the band with `/hud band`. The choice is remembered between sessions; the pane stays reachable with `/hud` while the band is hidden.
+
 ### Side pane
 
 Open it with ☰ or `/hud`.
@@ -55,6 +57,13 @@ Open it with ☰ or `/hud`.
 
 Cache and speed figures count the main conversation only. Subagent tokens get their own column in the token table.
 
+### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/hud` | Opens or closes the side pane (`/hud pane` does the same) |
+| `/hud band` | Shows or hides the band; remembered between sessions |
+
 ## ⚙️ Options
 
 In `/config`, under session-hud:
@@ -68,12 +77,13 @@ The prompt cache lifetime the countdown runs against. `1h` (the default) matches
 Validated on Claude Code 2.1.322:
 
     ❯ ./register.tsx hooks: session.start, config.set{key=theme}, command.run{command=hud}, session.measure, tool.call, turn.step, turn.complete, ui.render{component=AbovePrompt}, ui.render{component=Pane, requestId=session-hud}
-    ❯ ./register.tsx calls: $.clock.every (via tick), $.clock.now, $.command.register, $.config.list (via refreshScheme), $.process.run (via readGit), $.session.id, $.session.usage (via refreshUsage), $.state.get, $.state.set, $.ui.close, $.ui.copy, $.ui.open (via togglePane), $.ui.panes (via togglePane), $.ui.resolve, $.ui.toast
+    ❯ ./register.tsx calls: $.clock.every (via tick), $.clock.now, $.command.register, $.config.list (via refreshScheme), $.process.run (via readGit), $.session.id, $.session.usage (via refreshUsage), $.state.get, $.state.set, $.store.get (via restoreBand), $.store.set (via toggleBand), $.ui.close, $.ui.copy, $.ui.open (via togglePane), $.ui.panes (via togglePane), $.ui.resolve, $.ui.toast
 
 - `turn.step` reads each response's token counts and timing. It never changes a request or reads prompt text.
 - `tool.call` only notes that a Bash, PowerShell, Edit or Write call finished, to read git again. It passes every call on untouched.
 - `$.process.run` runs two read-only git commands in the session's folder: `git status --porcelain=v2 --branch` and `git rev-parse`. It never fetches, commits or writes.
 - `config.set` and `$.config.list` only read the `theme` setting, to pick the dark or light palette. They never change a setting.
+- `$.store` keeps one value, whether the band is shown, in the mod's own store under your Claude Code configuration directory. It is written only when you run `/hud band`.
 - `$.ui.copy` runs only when you press Copy in the pane.
 
 ## 🚧 Limits

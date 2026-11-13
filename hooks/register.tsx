@@ -35,6 +35,23 @@ const usage = atom({ plugin: 'session-hud', key: 'usage' } as const, null as Usa
 const git = atom({ plugin: 'session-hud', key: 'git' } as const, null as Git | null, { shape: 'git-1' })
 const now = atom({ plugin: 'session-hud', key: 'now' } as const, 0)
 const scheme = atom({ plugin: 'session-hud', key: 'scheme' } as const, 'dark' as Scheme)
+const bandShown = atom({ plugin: 'session-hud', key: 'bandShown' } as const, true)
+
+/** The `$.store` key the band's on/off choice is kept under, between sessions. */
+const BAND_KEY = 'bandShown'
+
+/** Brings back the choice an earlier session stored; the band shows unless it was turned off. */
+async function restoreBand($: EngineInterface): Promise<void> {
+  const stored = await $.store.get(BAND_KEY)
+  await update($, bandShown, () => stored !== false)
+}
+
+async function toggleBand($: EngineInterface): Promise<boolean> {
+  const next = !(await read($, bandShown))
+  await update($, bandShown, () => next)
+  await $.store.set(BAND_KEY, next)
+  return next
+}
 
 /** Reads the `theme` setting, so the Svg colors follow a light theme. */
 async function refreshScheme($: EngineInterface): Promise<void> {
@@ -202,7 +219,12 @@ export const register: Register = (on, options) => {
 
   on('session.start', async ($, e, next) => {
     const result = await next(e)
-    await $.command.register({ name: 'hud', description: 'Open or close the session pane' })
+    await $.command.register({
+      name: 'hud',
+      description: 'Open or close the session pane; `/hud band` shows or hides the band',
+      argumentHint: '[band]',
+    })
+    await restoreBand($).catch(() => {})
     const t = await $.clock.now()
     wroteAt = t
     await update($, now, () => t)
@@ -219,7 +241,16 @@ export const register: Register = (on, options) => {
     return result
   })
 
-  on('command.run', { command: 'hud' }, async $ => {
+  // `/hud` opens or closes the pane, `/hud band` shows or hides the band.
+  on('command.run', { command: 'hud' }, async ($, e) => {
+    const arg = e.args.trim().toLowerCase()
+    if (arg === 'band') {
+      const isShown = await toggleBand($)
+      return { text: isShown ? 'Band shown.' : 'Band hidden. /hud band shows it again.' }
+    }
+    if (arg !== '' && arg !== 'pane') {
+      return { text: 'Usage: /hud opens or closes the pane, /hud band shows or hides the band.' }
+    }
     const isOpen = await togglePane($)
     return { text: isOpen ? 'Session pane opened.' : 'Session pane closed.' }
   })
@@ -282,6 +313,7 @@ export const register: Register = (on, options) => {
   // a figure lays its details over the git line.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
+    if (!(await read($, bandShown))) return next(e)
 
     const u = await read($, usage)
     const l = await read($, last)
