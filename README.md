@@ -77,7 +77,7 @@ Validated on Claude Code 2.1.322:
 
 ## 🚧 Limits
 
-- 🌙 Drawn for the dark theme. Icons are images with fixed colors, so a light theme shows them in the same grey.
+- 🌗 Follows the `theme` setting: a light theme (`light`, `light-daltonized`, `light-ansi`) draws icons and bars in a darker palette; `auto` and dark themes use the dark one.
 - ⏱️ The cache countdown shows whole minutes until the last one. Redrawing the band every second reset the pointer's hover on it.
 - 🔄 "Not pulled" counts against the last `git fetch`. The mod never fetches.
 - 🧮 The countdown is an estimate from the last request's time and the TTL option. It does not check the server's cache.
@@ -97,7 +97,7 @@ claude plugin test .
 | `hooks/register.tsx` | Hooks: data collection, the band and the pane |
 | `hooks/calc.ts` | Formatting, cache tones, limit pace |
 | `hooks/git.ts` | Reads `git status --porcelain=v2 --branch` and worktree info |
-| `hooks/icons.ts` | [Lucide](https://lucide.dev) icon paths (ISC license), bars, dark theme colors |
+| `hooks/icons.ts` | [Lucide](https://lucide.dev) icon paths (ISC license), bars, dark and light palettes |
 | `tests/register.test.tsx` | Tests for `claude plugin test` |
 | `types/index.d.ts` | The mod's `$.state` contract |
 | `assets/band.png` | The capture above |

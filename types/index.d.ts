@@ -64,6 +64,8 @@ declare module 'claude-code' {
       usage: Shaped<Usage | null>
       git: Shaped<Git | null>
       now: number
+      /** The color scheme the Svg icons and bars are drawn for. */
+      scheme: 'dark' | 'light'
     }
   }
 }
